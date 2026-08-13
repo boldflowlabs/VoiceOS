@@ -258,6 +258,8 @@ services:
       POSTHOG_API_KEY: "phc_ItizB1dP6yv7ZYobbcqrpxTdbomDA8hJFSEmAMdYvIr"
       POSTHOG_HOST: "https://us.i.posthog.com"
 
+    volumes:
+      - ./api:/app/api
     ports:
       - "${API_PORT:-8001}:8000"
     depends_on:
