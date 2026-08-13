@@ -159,7 +159,7 @@ upsert() {
 
 [ -f "$AENV" ] || { echo "[worktree] no api/.env yet; skipping port assignment"; exit 0; }
 
-B="$(assign_port UVICORN_PORT api/.env 8000)"
+B="$(assign_port UVICORN_PORT api/.env 8001)"
 upsert UVICORN_PORT "$B" "$AENV"
 
 if [ -f "$UENV" ]; then

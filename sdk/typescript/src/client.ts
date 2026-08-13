@@ -68,7 +68,7 @@ export class DograhClient extends _GeneratedClient implements SpecProvider {
         const rawBase =
             opts.baseUrl ??
             getRuntimeEnv("DOGRAH_API_URL") ??
-            "http://localhost:8000";
+            "http://localhost:8001";
         this.baseUrl = rawBase.replace(/\/+$/, "");
         this.apiKey = opts.apiKey ?? getRuntimeEnv("DOGRAH_API_KEY");
         this.fetchImpl = opts.fetch ?? (globalThis.fetch as unknown as DograhFetch);

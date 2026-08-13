@@ -46,7 +46,7 @@ class DograhClient(_GeneratedClient):
         timeout: float = 30.0,
     ):
         resolved_url = base_url or os.environ.get(
-            "DOGRAH_API_URL", "http://localhost:8000"
+            "DOGRAH_API_URL", "http://localhost:8001"
         )
         self.base_url = resolved_url.rstrip("/")
         self.api_key = api_key or os.environ.get("DOGRAH_API_KEY")

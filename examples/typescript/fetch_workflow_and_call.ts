@@ -4,7 +4,7 @@
 //   npm install @dograh/sdk
 //
 // Environment variables:
-//   DOGRAH_API_ENDPOINT  - Dograh API base URL (e.g. http://localhost:8000)
+//   DOGRAH_API_ENDPOINT  - Dograh API base URL (e.g. http://localhost:8001)
 //   DOGRAH_API_TOKEN     - API token sent as X-API-Key
 //
 // Run:
@@ -18,7 +18,7 @@ const WORKFLOW_ID = 1;
 const PHONE_NUMBER = "+11187619471";
 
 async function main(): Promise<void> {
-    const apiEndpoint = process.env.DOGRAH_API_ENDPOINT ?? "http://localhost:8000";
+    const apiEndpoint = process.env.DOGRAH_API_ENDPOINT ?? "http://localhost:8001";
     const apiToken = process.env.DOGRAH_API_TOKEN;
 
     if (!apiToken) throw new Error("DOGRAH_API_TOKEN is required");

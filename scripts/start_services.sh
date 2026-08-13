@@ -42,7 +42,7 @@ if [[ "$DOGRAH_DEVOPS_SECRET" == "change-me-dograh-devops-secret" ]]; then
   exit 1
 fi
 
-UVICORN_BASE_PORT=${UVICORN_BASE_PORT:-8000}
+UVICORN_BASE_PORT=${UVICORN_BASE_PORT:-8001}
 CPU_CORES=$(nproc 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || echo 1)
 FASTAPI_WORKERS=${FASTAPI_WORKERS:-$CPU_CORES}
 

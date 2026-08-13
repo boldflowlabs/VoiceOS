@@ -36,7 +36,7 @@ if [[ -f "$ENV_FILE" ]]; then
   set -a && . "$ENV_FILE" && set +a
 fi
 
-UVICORN_BASE_PORT=${UVICORN_BASE_PORT:-8000}
+UVICORN_BASE_PORT=${UVICORN_BASE_PORT:-8001}
 
 ###############################################################################
 ### 2) Define services

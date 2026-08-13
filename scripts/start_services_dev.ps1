@@ -47,7 +47,7 @@ if (Test-Path $EnvFile) {
     }
 }
 
-if (-not $env:UVICORN_BASE_PORT)   { $env:UVICORN_BASE_PORT = '8000' }
+if (-not $env:UVICORN_BASE_PORT)   { $env:UVICORN_BASE_PORT = '8001' }
 
 $HealthEndpoint    = '/api/v1/health'
 $HealthMaxAttempts = if ($env:HEALTH_MAX_ATTEMPTS) { [int]$env:HEALTH_MAX_ATTEMPTS } else { 30 }

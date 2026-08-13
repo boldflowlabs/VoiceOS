@@ -4,7 +4,7 @@ Requirements:
     pip install -r requirements.txt
 
 Environment variables (loaded from `.env` in this directory):
-    DOGRAH_API_ENDPOINT  - Dograh API base URL (e.g. http://localhost:8000)
+    DOGRAH_API_ENDPOINT  - Dograh API base URL (e.g. http://localhost:8001)
     DOGRAH_API_TOKEN     - API token sent as X-API-Key
 
 Run:
@@ -31,7 +31,7 @@ PHONE_NUMBER = "+1113144411"
 
 
 def main() -> int:
-    api_endpoint = os.environ.get("DOGRAH_API_ENDPOINT", "http://localhost:8000")
+    api_endpoint = os.environ.get("DOGRAH_API_ENDPOINT", "http://localhost:8001")
     api_token = os.environ.get("DOGRAH_API_TOKEN")
 
     if not api_token:
