@@ -1487,36 +1487,36 @@ class RumikTTSConfiguration(BaseTTSConfiguration):
         description="Natural-language description for expressive voice synthesis.",
     )
     f0_up_key: int | None = Field(
-        default=None,
+        default=0,
         description="Pitch shift in semitones for preset voices.",
     )
     temperature: float | None = Field(
-        default=None,
+        default=0.6,
         ge=0.0,
         le=2.0,
         description="Sampling temperature.",
     )
     top_p: float | None = Field(
-        default=None,
+        default=0.95,
         ge=0.0,
         le=1.0,
         description="Nucleus sampling top_p.",
     )
     top_k: int | None = Field(
-        default=None,
+        default=50,
         ge=0,
         description="Top-k sampling parameter.",
     )
     repetition_penalty: float | None = Field(
-        default=None,
+        default=1.2,
         description="Repetition penalty parameter.",
     )
     max_new_tokens: int | None = Field(
-        default=None,
+        default=2048,
         description="Maximum new tokens generated per synthesis chunk.",
     )
     gateway_url: str | None = Field(
-        default=None,
+        default="https://silk-api.rumik.ai",
         description="Optional custom Rumik gateway base URL.",
     )
 

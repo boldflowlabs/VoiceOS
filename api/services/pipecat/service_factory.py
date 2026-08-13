@@ -685,17 +685,29 @@ def create_tts_service(
         gateway_url = (
             getattr(user_config.tts, "gateway_url", None)
             or os.getenv("RUMIK_GATEWAY_URL")
-            or "https://playground.rumik.ai"
+            or "https://silk-api.rumik.ai"
         )
         model = getattr(user_config.tts, "model", None) or "mulberry"
         voice = getattr(user_config.tts, "voice", None) or "Emma"
         description = getattr(user_config.tts, "description", None)
         f0_up_key = getattr(user_config.tts, "f0_up_key", None)
+        if f0_up_key is None:
+            f0_up_key = 0
         temperature = getattr(user_config.tts, "temperature", None)
+        if temperature is None:
+            temperature = 0.6
         top_p = getattr(user_config.tts, "top_p", None)
+        if top_p is None:
+            top_p = 0.95
         top_k = getattr(user_config.tts, "top_k", None)
+        if top_k is None:
+            top_k = 50
         repetition_penalty = getattr(user_config.tts, "repetition_penalty", None)
+        if repetition_penalty is None:
+            repetition_penalty = 1.2
         max_new_tokens = getattr(user_config.tts, "max_new_tokens", None)
+        if max_new_tokens is None:
+            max_new_tokens = 2048
 
         settings_kwargs = {
             "model": model,

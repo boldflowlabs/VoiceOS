@@ -16,6 +16,13 @@ def test_rumik_tts_configuration_defaults():
     assert config.model == "mulberry"
     assert config.voice == "Emma"
     assert config.description is None
+    assert config.f0_up_key == 0
+    assert config.temperature == 0.6
+    assert config.top_p == 0.95
+    assert config.top_k == 50
+    assert config.repetition_penalty == 1.2
+    assert config.max_new_tokens == 2048
+    assert config.gateway_url == "https://silk-api.rumik.ai"
     assert RUMIK_TTS_MODELS == ["mulberry", "muga"]
     assert "Emma" in RUMIK_TTS_VOICES
 
