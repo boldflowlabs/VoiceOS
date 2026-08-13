@@ -820,7 +820,7 @@ class MPSServiceKeyClient:
         Get available voices for a TTS provider from MPS.
 
         Args:
-            provider: TTS provider name (elevenlabs, deepgram, sarvam, cartesia, rime)
+            provider: TTS provider name (elevenlabs, deepgram, sarvam, cartesia, rime, rumik)
             model: Optional model ID to filter voices (e.g., "arcana", "mistv2")
             language: Optional language code to filter voices (e.g., "eng", "en")
             organization_id: Organization ID (for authenticated mode)

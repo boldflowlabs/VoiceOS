@@ -35,6 +35,12 @@ from pipecat.services.cartesia.tts import (
     GenerationConfig,
 )
 from pipecat.services.cartesia.turns.stt import CartesiaTurnsSTTService
+
+try:
+    from pipecat_rumik import RumikTTSService, RumikTTSSettings
+except ImportError:
+    RumikTTSService = None
+    RumikTTSSettings = None
 from pipecat.services.deepgram.flux.stt import (
     DeepgramFluxSTTService,
     DeepgramFluxSTTSettings,
@@ -662,6 +668,58 @@ def create_tts_service(
                     else {}
                 ),
             ),
+            text_filters=[xml_function_tag_filter],
+            skip_aggregator_types=["recording_router", "recording"],
+            silence_time_s=1.0,
+        )
+    elif user_config.tts.provider == ServiceProviders.RUMIK.value:
+        if RumikTTSService is None:
+            raise ValueError(
+                "pipecat-rumik package is not installed. Install it to use Rumik TTS."
+            )
+        import os
+
+        api_key = getattr(user_config.tts, "api_key", None) or os.getenv(
+            "RUMIK_API_KEY", ""
+        )
+        gateway_url = (
+            getattr(user_config.tts, "gateway_url", None)
+            or os.getenv("RUMIK_GATEWAY_URL")
+            or "https://playground.rumik.ai"
+        )
+        model = getattr(user_config.tts, "model", None) or "mulberry"
+        voice = getattr(user_config.tts, "voice", None) or "Emma"
+        description = getattr(user_config.tts, "description", None)
+        f0_up_key = getattr(user_config.tts, "f0_up_key", None)
+        temperature = getattr(user_config.tts, "temperature", None)
+        top_p = getattr(user_config.tts, "top_p", None)
+        top_k = getattr(user_config.tts, "top_k", None)
+        repetition_penalty = getattr(user_config.tts, "repetition_penalty", None)
+        max_new_tokens = getattr(user_config.tts, "max_new_tokens", None)
+
+        settings_kwargs = {
+            "model": model,
+            "voice": voice,
+        }
+        if description is not None:
+            settings_kwargs["description"] = description
+        if f0_up_key is not None:
+            settings_kwargs["f0_up_key"] = f0_up_key
+        if temperature is not None:
+            settings_kwargs["temperature"] = temperature
+        if top_p is not None:
+            settings_kwargs["top_p"] = top_p
+        if top_k is not None:
+            settings_kwargs["top_k"] = top_k
+        if repetition_penalty is not None:
+            settings_kwargs["repetition_penalty"] = repetition_penalty
+        if max_new_tokens is not None:
+            settings_kwargs["max_new_tokens"] = max_new_tokens
+
+        return RumikTTSService(
+            api_key=api_key,
+            gateway_url=gateway_url,
+            settings=RumikTTSSettings(**settings_kwargs),
             text_filters=[xml_function_tag_filter],
             skip_aggregator_types=["recording_router", "recording"],
             silence_time_s=1.0,

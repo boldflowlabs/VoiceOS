@@ -68,6 +68,7 @@ class UserConfigurationValidator:
             ServiceProviders.SMALLEST.value: self._check_smallest_api_key,
             ServiceProviders.XAI.value: self._check_xai_api_key,
             ServiceProviders.LMNT.value: self._check_lmnt_api_key,
+            ServiceProviders.RUMIK.value: self._check_rumik_api_key,
         }
 
     async def validate(
@@ -339,6 +340,9 @@ class UserConfigurationValidator:
         return True
 
     def _check_cartesia_api_key(self, model: str, api_key: str) -> bool:
+        return True
+
+    def _check_rumik_api_key(self, model: str, api_key: str) -> bool:
         return True
 
     def _check_dograh_api_key(self, model: str, api_key: str) -> bool:

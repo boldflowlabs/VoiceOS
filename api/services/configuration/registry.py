@@ -38,6 +38,9 @@ from api.services.configuration.options import (
     GOOGLE_TTS_VOICES,
     GOOGLE_VERTEX_REALTIME_LANGUAGES,
     GOOGLE_VERTEX_REALTIME_MODELS,
+    RUMIK_TTS_LANGUAGES,
+    RUMIK_TTS_MODELS,
+    RUMIK_TTS_VOICES,
     GOOGLE_VERTEX_REALTIME_VOICES,
     SARVAM_LANGUAGES,
     SARVAM_LLM_MODELS,
@@ -98,6 +101,7 @@ class ServiceProviders(str, Enum):
     SMALLEST = "smallest"
     XAI = "xai"
     LMNT = "lmnt"
+    RUMIK = "rumik"
 
 
 class BaseServiceConfiguration(BaseModel):
@@ -131,6 +135,7 @@ class BaseServiceConfiguration(BaseModel):
         ServiceProviders.SMALLEST,
         ServiceProviders.XAI,
         ServiceProviders.LMNT,
+        ServiceProviders.RUMIK,
     ]
     api_key: str | list[str]
 
@@ -313,6 +318,7 @@ GOOGLE_VERTEX_REALTIME_PROVIDER_MODEL_CONFIG = provider_model_config(
 DEEPGRAM_PROVIDER_MODEL_CONFIG = provider_model_config("Deepgram")
 ELEVENLABS_PROVIDER_MODEL_CONFIG = provider_model_config("ElevenLabs")
 CARTESIA_PROVIDER_MODEL_CONFIG = provider_model_config("Cartesia")
+RUMIK_PROVIDER_MODEL_CONFIG = provider_model_config("Rumik")
 XAI_PROVIDER_MODEL_CONFIG = provider_model_config("xAI")
 LMNT_PROVIDER_MODEL_CONFIG = provider_model_config("LMNT")
 INWORLD_PROVIDER_MODEL_CONFIG = provider_model_config(
@@ -1459,6 +1465,62 @@ class LmntTTSConfiguration(BaseTTSConfiguration):
     )
 
 
+@register_tts
+class RumikTTSConfiguration(BaseTTSConfiguration):
+    model_config = RUMIK_PROVIDER_MODEL_CONFIG
+    provider: Literal[ServiceProviders.RUMIK] = ServiceProviders.RUMIK
+    api_key: str | list[str] = Field(
+        default="", description="Rumik API Key."
+    )
+    model: str = Field(
+        default="mulberry",
+        description="Rumik TTS model.",
+        json_schema_extra={"examples": RUMIK_TTS_MODELS},
+    )
+    voice: str = Field(
+        default="Emma",
+        description="Rumik voice name or preset speaker.",
+        json_schema_extra={"examples": RUMIK_TTS_VOICES, "allow_custom_input": True},
+    )
+    description: str | None = Field(
+        default=None,
+        description="Natural-language description for expressive voice synthesis.",
+    )
+    f0_up_key: int | None = Field(
+        default=None,
+        description="Pitch shift in semitones for preset voices.",
+    )
+    temperature: float | None = Field(
+        default=None,
+        ge=0.0,
+        le=2.0,
+        description="Sampling temperature.",
+    )
+    top_p: float | None = Field(
+        default=None,
+        ge=0.0,
+        le=1.0,
+        description="Nucleus sampling top_p.",
+    )
+    top_k: int | None = Field(
+        default=None,
+        ge=0,
+        description="Top-k sampling parameter.",
+    )
+    repetition_penalty: float | None = Field(
+        default=None,
+        description="Repetition penalty parameter.",
+    )
+    max_new_tokens: int | None = Field(
+        default=None,
+        description="Maximum new tokens generated per synthesis chunk.",
+    )
+    gateway_url: str | None = Field(
+        default=None,
+        description="Optional custom Rumik gateway base URL.",
+    )
+
+
 TTSConfig = Annotated[
     Union[
         DeepgramTTSConfiguration,
@@ -1477,6 +1539,7 @@ TTSConfig = Annotated[
         SmallestAITTSConfiguration,
         XAITTSConfiguration,
         LmntTTSConfiguration,
+        RumikTTSConfiguration,
     ],
     Field(discriminator="provider"),
 ]

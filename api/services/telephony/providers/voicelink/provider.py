@@ -474,49 +474,80 @@ class VoiceLinkProvider(TelephonyProvider):
     ) -> bool:
         """Detect a VoiceLink *inbound* call webhook on the generic dispatcher.
 
-        VoiceLink posts nested JSON ``{"event": ..., "call": {...}}``. We only
-        claim the webhook when it is an inbound-direction call event, so the
-        per-run *outbound* event webhooks (which target
-        ``/voicelink/events/{run_id}``) are never accidentally matched here.
+        VoiceLink posts either nested JSON ``{"event": ..., "call": {...}}`` or
+        flat JSON with keys like ``callerId``, ``customerNumber``, ``callId``, ``sid``.
         """
         call = webhook_data.get("call")
-        if not isinstance(call, dict):
-            return False
-        if str(call.get("direction", "")).lower() != "inbound":
-            return False
-        # Require the VoiceLink-shaped envelope so we don't shadow other
-        # providers' form posts.
-        return "event" in webhook_data or "id" in call
+        if isinstance(call, dict):
+            if str(call.get("direction", "")).lower() == "outbound":
+                return False
+            return "event" in webhook_data or "id" in call
+
+        # Flat format check
+        voicelink_keys = {"callerId", "callId", "sid", "didNumber", "did_number", "customerNumber"}
+        if any(k in webhook_data for k in voicelink_keys):
+            if str(webhook_data.get("direction", "")).lower() == "outbound":
+                return False
+            return True
+
+        return False
 
     @staticmethod
     def parse_inbound_webhook(webhook_data: Dict[str, Any]) -> NormalizedInboundData:
         """
         Parse a VoiceLink event into normalized inbound format.
-
-        Inbound calls are not currently routed through VoiceLink, but the
-        nested ``call`` payload is normalized defensively. VoiceLink is
-        India-only — hardcode "IN" so local-form numbers normalize to the
-        right E.164.
+        Handles both nested ``call`` dict and flat JSON payloads.
         """
         country = "IN"
-        call = webhook_data.get("call") or {}
-        from_raw = call.get("from", "")
-        to_raw = call.get("to", "")
+        call = webhook_data.get("call") if isinstance(webhook_data.get("call"), dict) else {}
+
+        if call:
+            from_raw = call.get("from") or call.get("callerId") or call.get("customerNumber") or ""
+            to_raw = call.get("to") or call.get("did") or call.get("didNumber") or call.get("did_number") or ""
+            call_id = call.get("id") or call.get("callId") or call.get("sid") or ""
+            call_status = call.get("status") or "ringing"
+        else:
+            from_raw = (
+                webhook_data.get("callerId")
+                or webhook_data.get("customerNumber")
+                or webhook_data.get("from")
+                or webhook_data.get("caller")
+                or ""
+            )
+            to_raw = (
+                webhook_data.get("didNumber")
+                or webhook_data.get("did_number")
+                or webhook_data.get("did")
+                or webhook_data.get("to")
+                or webhook_data.get("calledNumber")
+                or ""
+            )
+            call_id = (
+                webhook_data.get("callId")
+                or webhook_data.get("sid")
+                or webhook_data.get("id")
+                or ""
+            )
+            call_status = webhook_data.get("status") or "ringing"
+
+        from_norm = (
+            normalize_telephony_address(from_raw, country_hint=country).canonical
+            if from_raw
+            else ""
+        )
+        to_norm = (
+            normalize_telephony_address(to_raw, country_hint=country).canonical
+            if to_raw
+            else "+919484707553"
+        )
+
         return NormalizedInboundData(
             provider=VoiceLinkProvider.PROVIDER_NAME,
-            call_id=call.get("id", ""),
-            from_number=normalize_telephony_address(
-                from_raw, country_hint=country
-            ).canonical
-            if from_raw
-            else "",
-            to_number=normalize_telephony_address(
-                to_raw, country_hint=country
-            ).canonical
-            if to_raw
-            else "",
+            call_id=str(call_id),
+            from_number=from_norm,
+            to_number=to_norm,
             direction="inbound",
-            call_status=call.get("status", ""),
+            call_status=call_status,
             account_id=None,
             from_country=country,
             to_country=country,
@@ -567,10 +598,21 @@ class VoiceLinkProvider(TelephonyProvider):
         )
         body = {
             "status": "ok",
+            "code": 200,
+            "success": True,
             "action": "stream",
             "websocket_url": websocket_url,
+            "websocketUrl": websocket_url,
+            "ws_url": websocket_url,
+            "wsUrl": websocket_url,
+            "stream_url": websocket_url,
+            "streamUrl": websocket_url,
             "webhook_url": events_url,
+            "webhookUrl": events_url,
+            "event_url": events_url,
+            "eventUrl": events_url,
             "media_format": {"encoding": "audio/alaw", "sample_rate": 8000},
+            "mediaFormat": {"encoding": "audio/alaw", "sample_rate": 8000},
         }
         logger.info(
             f"[run {workflow_run_id}] VoiceLink inbound answer: "
