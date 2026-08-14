@@ -56,6 +56,11 @@ from api.utils.telephony_helper import (
 
 router = APIRouter(prefix="/telephony")
 
+import asyncio
+import time
+_inbound_dispatch_lock = asyncio.Lock()
+_recent_inbound_responses: dict[str, tuple[float, any]] = {}
+
 
 class InitiateCallRequest(BaseModel):
     workflow_id: int
@@ -215,6 +220,8 @@ async def initiate_call(
                     detail="workflow_run_workflow_mismatch",
                 )
             workflow_run_name = workflow_run.name
+
+        set_current_run_id(workflow_run_id)
 
         await call_concurrency.bind_workflow_run(concurrency_slot, workflow_run_id)
     except WorkflowRunSlotAlreadyBoundError:
@@ -512,6 +519,7 @@ async def _create_inbound_workflow_run(
         definition_id=run_inputs.definition_id,
     )
 
+    set_current_run_id(workflow_run.id)
     logger.info(
         f"Created inbound workflow run {workflow_run.id} for {provider} call {call_id}"
     )
@@ -805,6 +813,9 @@ async def handle_inbound_run(request: Request):
     try:
         webhook_data, raw_body = await parse_webhook_request(request)
         headers = dict(request.headers)
+        logger.info(f"/inbound/run headers: {headers}")
+        body_str = raw_body.decode("utf-8", errors="ignore") if isinstance(raw_body, bytes) else str(raw_body)
+        logger.info(f"/inbound/run raw body: {body_str}")
 
         provider_class = await _detect_provider(webhook_data, headers)
         if not provider_class:
@@ -822,6 +833,17 @@ async def handle_inbound_run(request: Request):
                 f"Non-inbound call on /inbound/run: {normalized_data.direction}"
             )
             return generic_hangup_response()
+
+        call_id = normalized_data.call_id or f"{normalized_data.from_number}:{normalized_data.to_number}"
+        now = time.time()
+        async with _inbound_dispatch_lock:
+            stale_keys = [k for k, (t, _) in _recent_inbound_responses.items() if now - t > 15.0]
+            for k in stale_keys:
+                _recent_inbound_responses.pop(k, None)
+            if call_id in _recent_inbound_responses:
+                logger.info(f"/inbound/run: deduplicating parallel webhook for call_id={call_id}")
+                _, cached_resp = _recent_inbound_responses[call_id]
+                return cached_resp
 
         # 1. Resolve (config, phone_number) in a single SQL roundtrip that
         # joins telephony_configurations and telephony_phone_numbers and
@@ -943,12 +965,15 @@ async def handle_inbound_run(request: Request):
                 workflow_run_id,
             )
 
-            return await provider_instance.start_inbound_stream(
+            resp = await provider_instance.start_inbound_stream(
                 websocket_url=websocket_url,
                 workflow_run_id=workflow_run_id,
                 normalized_data=normalized_data,
                 backend_endpoint=backend_endpoint,
             )
+            async with _inbound_dispatch_lock:
+                _recent_inbound_responses[call_id] = (time.time(), resp)
+            return resp
         except WorkflowRunSlotAlreadyBoundError:
             return provider_class.generate_validation_error_response(
                 TelephonyError.CONCURRENT_CALL_LIMIT

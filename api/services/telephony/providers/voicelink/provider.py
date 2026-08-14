@@ -264,7 +264,15 @@ class VoiceLinkProvider(TelephonyProvider):
                 }
             ),
             "websocket_url": websocket_url,
+            "websocketUrl": websocket_url,
+            "ws_url": websocket_url,
+            "wsUrl": websocket_url,
+            "stream_url": websocket_url,
+            "streamUrl": websocket_url,
             "webhook_url": events_url,
+            "webhookUrl": events_url,
+            "event_url": events_url,
+            "eventUrl": events_url,
         }
 
         logger.info(
@@ -601,6 +609,9 @@ class VoiceLinkProvider(TelephonyProvider):
             "code": 200,
             "success": True,
             "action": "stream",
+            "url": websocket_url,
+            "ws": websocket_url,
+            "websocket": websocket_url,
             "websocket_url": websocket_url,
             "websocketUrl": websocket_url,
             "ws_url": websocket_url,
@@ -613,6 +624,15 @@ class VoiceLinkProvider(TelephonyProvider):
             "eventUrl": events_url,
             "media_format": {"encoding": "audio/alaw", "sample_rate": 8000},
             "mediaFormat": {"encoding": "audio/alaw", "sample_rate": 8000},
+            "data": {
+                "url": websocket_url,
+                "ws": websocket_url,
+                "websocket": websocket_url,
+                "websocket_url": websocket_url,
+                "ws_url": websocket_url,
+                "stream_url": websocket_url,
+                "webhook_url": events_url,
+            },
         }
         logger.info(
             f"[run {workflow_run_id}] VoiceLink inbound answer: "

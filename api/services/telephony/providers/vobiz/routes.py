@@ -52,6 +52,10 @@ async def _verify_vobiz_callback(
         raise HTTPException(status_code=403, detail="Invalid webhook signature")
 
 
+@router.post(
+    "/vobiz-xml/{workflow_id}/{organization_id}/{workflow_run_id}",
+    include_in_schema=False,
+)
 @router.post("/vobiz-xml", include_in_schema=False)
 async def handle_vobiz_xml_webhook(
     workflow_id: int, workflow_run_id: int, organization_id: int

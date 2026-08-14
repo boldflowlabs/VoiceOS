@@ -91,17 +91,23 @@ class VobizProvider(TelephonyProvider):
         to_number_clean = to_number.lstrip("+")
         from_number_clean = from_number.lstrip("+")
 
+        backend_endpoint, _ = await get_backend_endpoints()
+
+        # Format clean answer_url without query string parameters for Vobiz API
+        answer_url = webhook_url
+        if workflow_run_id and kwargs.get("workflow_id") and kwargs.get("organization_id"):
+            answer_url = f"{backend_endpoint}/api/v1/telephony/vobiz-xml/{kwargs['workflow_id']}/{kwargs['organization_id']}/{workflow_run_id}"
+
         # Prepare call data (JSON format)
         data = {
             "from": from_number_clean,
             "to": to_number_clean,
-            "answer_url": webhook_url,
+            "answer_url": answer_url,
             "answer_method": "POST",
         }
 
         # Add hangup callback if workflow_run_id provided
         if workflow_run_id:
-            backend_endpoint, _ = await get_backend_endpoints()
             hangup_url = f"{backend_endpoint}/api/v1/telephony/vobiz/hangup-callback/{workflow_run_id}"
             ring_url = f"{backend_endpoint}/api/v1/telephony/vobiz/ring-callback/{workflow_run_id}"
             data.update(
@@ -113,8 +119,20 @@ class VobizProvider(TelephonyProvider):
                 }
             )
 
-        # Add optional parameters
-        data.update(kwargs)
+        # Filter kwargs so internal Dograh keys do not overwrite answer_url or pollute Vobiz API payload
+        internal_keys = {
+            "workflow_id",
+            "organization_id",
+            "user_id",
+            "telephony_configuration_id",
+            "answer_url",
+            "webhook_url",
+        }
+        for k, v in kwargs.items():
+            if k not in internal_keys:
+                data[k] = v
+
+        logger.info(f"Vobiz API request payload: {json.dumps(data)}")
 
         # Make the API request
         headers = {
@@ -268,7 +286,7 @@ class VobizProvider(TelephonyProvider):
 
         vobiz_xml = f"""<?xml version="1.0" encoding="UTF-8"?>
 <Response>
-    <Stream bidirectional="true" keepCallAlive="true" contentType="audio/x-mulaw;rate=8000">{ws_url}</Stream>
+    <Stream url="{ws_url}" streamUrl="{ws_url}" bidirectional="true" keepCallAlive="true" contentType="audio/x-mulaw;rate=8000">{ws_url}</Stream>
 </Response>"""
         return vobiz_xml
 
